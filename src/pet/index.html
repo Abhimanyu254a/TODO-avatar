@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
+    />
+    <title>TodoAvatarPet</title>
+    <link rel="stylesheet" href="pet.css" />
+  </head>
+  <body>
+    <div id="stage" data-skin="blob" data-state="idle" data-mood="happy" data-surface="floor" data-facing="1">
+      <div class="bubble" id="bubble">
+        <div class="bubble-text" id="bubbleText"></div>
+      </div>
+
+      <div class="pet-wrap" id="petWrap">
+        <div class="shadow"></div>
+
+        <div class="badge" id="badge"><span id="badgeCount">0</span></div>
+
+        <div class="flip" id="flip">
+          <div class="pet" id="pet">
+            <div class="tilt" id="tilt">
+              <div class="antenna"><span class="stalk"></span><span class="orb"></span></div>
+
+              <div class="arm left"><span class="hand"></span></div>
+              <div class="arm right"><span class="hand"></span></div>
+
+              <div class="leg left"><span class="foot"></span></div>
+              <div class="leg right"><span class="foot"></span></div>
+
+              <div class="body" id="avatarBody">
+                <span class="shine"></span>
+                <span class="cheek left"></span>
+                <span class="cheek right"></span>
+                <span class="brow left"></span>
+                <span class="brow right"></span>
+                <div class="eye left"><span class="pupil"><i></i></span></div>
+                <div class="eye right"><span class="pupil"><i></i></span></div>
+                <div class="mouth"></div>
+              </div>
+            </div>
+
+            <canvas class="sprite" id="sprite" width="20" height="16"></canvas>
+
+            <div class="zzz"><span>z</span><span>z</span><span>z</span></div>
+            <div class="sparkles"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="alert-mark">!</div>
+            <div class="notepad"><b></b><b></b><b></b><span class="pencil"></span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="sprites.js"></script>
+    <script src="pet.js"></script>
+  </body>
+</html>

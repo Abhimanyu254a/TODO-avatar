@@ -1,0 +1,1301 @@
+/* =========================================================================
+   Todo Avatar — the little creature
+   The whole character is designed on a 128 x 128 stage and scaled with --k,
+   so it stays crisp and consistent at every size from 32 to 128 px.
+   ========================================================================= */
+
+:root {
+  --k: 0.75;
+  --char-h: 96px;
+  --ink: #241a4a;
+  --grad-a: #a294ff;
+  --grad-b: #7a5bff;
+  --grad-c: #5a38e6;
+  --grad-d: #4527c9;
+  --ex: 0px;
+  --ey: 0px;
+  --tilt: 0deg;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: transparent;
+  -webkit-user-select: none;
+  user-select: none;
+  cursor: default;
+}
+
+body {
+  font-family: "Segoe UI Variable Display", "Segoe UI", system-ui, -apple-system, sans-serif;
+  color: #fff;
+}
+
+#stage {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+/* -------------------------------------------------------------------------
+   Speech bubble
+   ------------------------------------------------------------------------- */
+.bubble {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: calc(14px + var(--char-h) + 12px);
+  width: max-content;
+  max-width: calc(100% - 20px);
+  margin: 0 auto;
+  padding: 9px 12px;
+  border-radius: 14px;
+  background: rgba(23, 17, 43, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 12px 30px rgba(8, 4, 22, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+  color: #f4f0ff;
+  font-size: 12.5px;
+  line-height: 1.38;
+  letter-spacing: 0.1px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(8px) scale(0.9);
+  transform-origin: 50% 100%;
+  transition: opacity 0.18s ease, transform 0.24s cubic-bezier(0.2, 1.5, 0.4, 1);
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 20;
+}
+
+.bubble.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.bubble::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 10px;
+  height: 10px;
+  margin-left: -5px;
+  background: rgba(23, 17, 43, 0.94);
+  border-right: 1px solid rgba(255, 255, 255, 0.14);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  transform: rotate(45deg);
+  border-radius: 0 0 3px 0;
+}
+
+.bubble::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 100%;
+  background: linear-gradient(90deg, #ff9d5c, #ff5c8a, #8a6bff);
+  transform-origin: left center;
+  transform: scaleX(0);
+  opacity: 0.9;
+}
+
+.bubble.show::after {
+  animation: bubbleLife var(--bubble-ms, 6000ms) linear forwards;
+}
+
+@keyframes bubbleLife {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Stage / wrapper
+   ------------------------------------------------------------------------- */
+.pet-wrap {
+  position: absolute;
+  left: 50%;
+  bottom: 14px;
+  width: 128px;
+  height: 128px;
+  transform: translateX(-50%) scale(var(--k));
+  transform-origin: 50% 100%;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.flip {
+  position: absolute;
+  inset: 0;
+  transition: transform 0.18s ease;
+}
+
+#stage[data-facing="-1"] .flip {
+  transform: scaleX(-1);
+}
+
+.pet {
+  position: absolute;
+  inset: 0;
+  animation: idleBob 3.4s ease-in-out infinite;
+  will-change: transform;
+}
+
+.tilt {
+  position: absolute;
+  inset: 0;
+  transform: rotate(var(--tilt));
+  transition: transform 0.22s ease-out;
+  transform-origin: 50% 78%;
+}
+
+.shadow {
+  position: absolute;
+  left: 18px;
+  bottom: 0;
+  width: 92px;
+  height: 12px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse at center, rgba(26, 10, 72, 0.5), rgba(26, 10, 72, 0) 72%);
+  filter: blur(1.5px);
+  animation: shadowPulse 3.4s ease-in-out infinite;
+  transform-origin: center;
+}
+
+@keyframes shadowPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(0.9);
+    opacity: 0.6;
+  }
+}
+
+@keyframes idleBob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3.5px);
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Badge with pending count
+   ------------------------------------------------------------------------- */
+.badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(160deg, #ffb15c, #ff5c8a);
+  box-shadow: 0 4px 10px rgba(255, 60, 120, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  border: 1.5px solid rgba(255, 255, 255, 0.75);
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 0.2s ease, transform 0.28s cubic-bezier(0.2, 1.6, 0.4, 1);
+  animation: idleBob 3.4s ease-in-out infinite;
+}
+
+.badge.show {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.badge.pop {
+  animation: badgePop 0.5s cubic-bezier(0.2, 1.8, 0.4, 1);
+}
+
+@keyframes badgePop {
+  0% {
+    transform: scale(0.5);
+  }
+  60% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* -------------------------------------------------------------------------
+   The body
+   ------------------------------------------------------------------------- */
+.body {
+  position: absolute;
+  left: 16px;
+  top: 24px;
+  width: 96px;
+  height: 90px;
+  border-radius: 48% 48% 44% 44% / 52% 52% 48% 48%;
+  background:
+    radial-gradient(120% 90% at 30% 12%, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0) 44%),
+    linear-gradient(165deg, var(--grad-a) 0%, var(--grad-b) 38%, var(--grad-c) 72%, var(--grad-d) 100%);
+  box-shadow:
+    inset 0 -12px 20px rgba(38, 12, 110, 0.4),
+    inset 0 10px 18px rgba(255, 255, 255, 0.24),
+    inset 0 0 0 1.5px rgba(255, 255, 255, 0.18),
+    0 10px 22px rgba(70, 30, 180, 0.4);
+  animation: breathe 3.4s ease-in-out infinite;
+  transform-origin: 50% 100%;
+  pointer-events: auto;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  50% {
+    transform: scale(1.012, 1.022);
+  }
+}
+
+.shine {
+  position: absolute;
+  left: 13px;
+  top: 7px;
+  width: 32px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.32);
+  filter: blur(3px);
+  transform: rotate(-18deg);
+}
+
+/* eyes ------------------------------------------------------------------ */
+.eye {
+  position: absolute;
+  top: 27px;
+  width: 25px;
+  height: 27px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ffffff 0%, #f0eaff 100%);
+  box-shadow: inset 0 -3px 6px rgba(80, 50, 160, 0.18), inset 0 2px 3px rgba(255, 255, 255, 0.9);
+  overflow: hidden;
+  transition: transform 0.1s ease, height 0.1s ease, top 0.1s ease;
+}
+
+.eye.left {
+  left: 15px;
+}
+
+.eye.right {
+  right: 15px;
+}
+
+.pupil {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 12px;
+  height: 14px;
+  margin: -7px 0 0 -6px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 38% 30%, #4b3a86 0%, #241a4a 55%, #150e2e 100%);
+  transform: translate(var(--ex), var(--ey));
+  transition: transform 0.07s linear, width 0.12s ease, height 0.12s ease;
+}
+
+.pupil i {
+  position: absolute;
+  left: 2.5px;
+  top: 2px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.eye .pupil::after {
+  content: "";
+  position: absolute;
+  right: 2px;
+  bottom: 3px;
+  width: 2.5px;
+  height: 2.5px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.pet.blink .eye {
+  transform: scaleY(0.08);
+}
+
+/* brows ----------------------------------------------------------------- */
+.brow {
+  position: absolute;
+  top: 20px;
+  width: 15px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(46, 28, 96, 0.75);
+  opacity: 0;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.brow.left {
+  left: 20px;
+  transform: rotate(8deg);
+}
+
+.brow.right {
+  right: 20px;
+  transform: rotate(-8deg);
+}
+
+#stage[data-mood="alert"] .brow,
+#stage[data-mood="pester"] .brow {
+  opacity: 1;
+}
+
+#stage[data-mood="alert"] .brow.left,
+#stage[data-mood="pester"] .brow.left {
+  transform: rotate(18deg) translateY(-1px);
+}
+
+#stage[data-mood="alert"] .brow.right,
+#stage[data-mood="pester"] .brow.right {
+  transform: rotate(-18deg) translateY(-1px);
+}
+
+/* cheeks ---------------------------------------------------------------- */
+.cheek {
+  position: absolute;
+  top: 55px;
+  width: 17px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(255, 122, 186, 0.5);
+  filter: blur(2px);
+  opacity: 0.9;
+}
+
+.cheek.left {
+  left: 7px;
+}
+
+.cheek.right {
+  right: 7px;
+}
+
+/* mouth ----------------------------------------------------------------- */
+.mouth {
+  position: absolute;
+  left: 50%;
+  top: 62px;
+  width: 15px;
+  height: 7px;
+  margin-left: -7.5px;
+  border-bottom: 3px solid var(--ink);
+  border-radius: 0 0 60% 60%;
+  transition: all 0.16s ease;
+}
+
+#stage[data-mood="alert"] .mouth {
+  width: 11px;
+  height: 11px;
+  margin-left: -5.5px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+#stage[data-mood="pester"] .mouth {
+  width: 12px;
+  height: 4px;
+  margin-left: -6px;
+  border-bottom-width: 2.5px;
+  border-radius: 0;
+}
+
+#stage[data-mood="sleepy"] .mouth {
+  width: 9px;
+  height: 4px;
+  margin-left: -4.5px;
+  border-bottom-width: 2.5px;
+}
+
+#stage[data-mood="excited"] .mouth {
+  width: 16px;
+  height: 10px;
+  margin-left: -8px;
+  border: 0;
+  border-radius: 0 0 50% 50%;
+  background: var(--ink);
+}
+
+/* arms and hands -------------------------------------------------------- */
+.arm {
+  position: absolute;
+  top: 54px;
+  width: 15px;
+  height: 36px;
+  border-radius: 9px;
+  background: linear-gradient(180deg, #8f76ff 0%, #6b4bf0 60%, #5636dd 100%);
+  box-shadow: inset 0 -4px 6px rgba(40, 16, 120, 0.3);
+  transform-origin: 50% 7px;
+  transition: transform 0.22s cubic-bezier(0.2, 1.3, 0.4, 1);
+  pointer-events: auto;
+}
+
+.arm.left {
+  left: 1px;
+  transform: rotate(15deg);
+}
+
+.arm.right {
+  right: 1px;
+  transform: rotate(-15deg);
+}
+
+.hand {
+  position: absolute;
+  left: -2px;
+  bottom: -5px;
+  width: 19px;
+  height: 16px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #a795ff, #7454f5 60%, #5a39e0);
+  box-shadow: inset 0 -3px 5px rgba(40, 16, 120, 0.28);
+}
+
+/* legs and feet --------------------------------------------------------- */
+.leg {
+  position: absolute;
+  top: 100px;
+  width: 17px;
+  height: 26px;
+  border-radius: 9px;
+  background: linear-gradient(180deg, #7152f2 0%, #5334d6 100%);
+  transform-origin: 50% 4px;
+  pointer-events: auto;
+}
+
+.leg.left {
+  left: 34px;
+}
+
+.leg.right {
+  left: 77px;
+}
+
+.foot {
+  position: absolute;
+  left: -4px;
+  bottom: -3px;
+  width: 25px;
+  height: 13px;
+  border-radius: 50% 50% 46% 46%;
+  background: linear-gradient(180deg, #8a6cff 0%, #5f3fe6 100%);
+  box-shadow: inset 0 -2px 4px rgba(40, 16, 120, 0.3);
+}
+
+/* antenna --------------------------------------------------------------- */
+.antenna {
+  position: absolute;
+  left: 62px;
+  top: 0;
+  width: 4px;
+  height: 27px;
+}
+
+.stalk {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 4px;
+  height: 22px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, rgba(160, 134, 255, 0.9), rgba(120, 90, 240, 0.2));
+}
+
+.orb {
+  position: absolute;
+  left: -5px;
+  top: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, #fff8d3 0%, #ffd166 45%, #ff9a3c 100%);
+  box-shadow: 0 0 10px rgba(255, 198, 90, 0.85), 0 0 22px rgba(255, 160, 60, 0.35);
+  animation: orbPulse 2.6s ease-in-out infinite;
+}
+
+@keyframes orbPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  50% {
+    transform: scale(1.12);
+    filter: brightness(1.15);
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Extras
+   ------------------------------------------------------------------------- */
+.zzz {
+  position: absolute;
+  right: 6px;
+  top: 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  font-weight: 700;
+  color: #c3b2ff;
+  text-shadow: 0 2px 6px rgba(40, 20, 90, 0.45);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.zzz span {
+  display: block;
+  line-height: 1;
+}
+
+.zzz span:nth-child(1) {
+  font-size: 10px;
+  margin-left: 0;
+  opacity: 0.5;
+}
+.zzz span:nth-child(2) {
+  font-size: 14px;
+  margin-left: 5px;
+  opacity: 0.7;
+}
+.zzz span:nth-child(3) {
+  font-size: 19px;
+  margin-left: 11px;
+  opacity: 0.9;
+}
+
+#stage[data-sleepy="true"][data-state="idle"] .zzz {
+  opacity: 1;
+}
+
+#stage[data-sleepy="true"][data-state="idle"] .zzz span {
+  animation: zfloat 3.2s ease-in-out infinite;
+}
+
+#stage[data-sleepy="true"][data-state="idle"] .zzz span:nth-child(2) {
+  animation-delay: 0.45s;
+}
+
+#stage[data-sleepy="true"][data-state="idle"] .zzz span:nth-child(3) {
+  animation-delay: 0.9s;
+}
+
+@keyframes zfloat {
+  0% {
+    transform: translateY(4px);
+    opacity: 0.2;
+  }
+  40% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(-7px);
+    opacity: 0;
+  }
+}
+
+.sparkles {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.sparkles i {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  background: linear-gradient(160deg, #ffe8a3, #ff9d5c);
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+}
+
+.sparkles i:nth-child(1) {
+  left: 4px;
+  top: 42px;
+}
+.sparkles i:nth-child(2) {
+  right: 2px;
+  top: 34px;
+  width: 9px;
+  height: 9px;
+}
+.sparkles i:nth-child(3) {
+  left: 14px;
+  top: 14px;
+}
+.sparkles i:nth-child(4) {
+  right: 12px;
+  top: 10px;
+  width: 5px;
+  height: 5px;
+}
+.sparkles i:nth-child(5) {
+  left: 30px;
+  top: 4px;
+  width: 5px;
+  height: 5px;
+}
+.sparkles i:nth-child(6) {
+  right: 34px;
+  top: 2px;
+  width: 6px;
+  height: 6px;
+}
+
+.celebrate .sparkles {
+  animation: sparkleBurst 1.15s ease-out;
+}
+
+.celebrate .sparkles i {
+  animation: sparklePop 0.9s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+@keyframes sparkleBurst {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  12%,
+  70% {
+    opacity: 1;
+  }
+}
+
+@keyframes sparklePop {
+  0% {
+    transform: scale(0) rotate(0deg);
+  }
+  45% {
+    transform: scale(1.35) rotate(35deg);
+  }
+  100% {
+    transform: scale(0.2) rotate(80deg);
+    opacity: 0;
+  }
+}
+
+.alert-mark {
+  position: absolute;
+  right: 2px;
+  top: 4px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 17px;
+  color: #fff;
+  background: linear-gradient(160deg, #ff8a5c, #ff3d6e);
+  box-shadow: 0 4px 12px rgba(255, 50, 100, 0.5);
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  opacity: 0;
+  transform: scale(0.3);
+  transition: opacity 0.16s ease, transform 0.26s cubic-bezier(0.2, 1.7, 0.4, 1);
+  pointer-events: none;
+}
+
+#stage[data-mood="alert"] .alert-mark {
+  opacity: 1;
+  transform: scale(1);
+  animation: alertPulse 0.6s ease-in-out infinite alternate;
+}
+
+@keyframes alertPulse {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.14);
+  }
+}
+
+.notepad {
+  position: absolute;
+  right: -2px;
+  bottom: 18px;
+  width: 40px;
+  height: 44px;
+  border-radius: 6px;
+  background: linear-gradient(170deg, #fffdf6, #f2e8ff);
+  box-shadow: 0 6px 14px rgba(20, 8, 60, 0.35);
+  transform: rotate(8deg) scale(0);
+  transform-origin: bottom right;
+  transition: transform 0.28s cubic-bezier(0.2, 1.5, 0.4, 1);
+  padding: 9px 6px 0;
+  pointer-events: none;
+}
+
+.notepad b {
+  display: block;
+  height: 2px;
+  margin-bottom: 4px;
+  border-radius: 2px;
+  background: #c9bcf0;
+}
+
+.notepad b:nth-child(2) {
+  width: 78%;
+}
+
+.notepad b:nth-child(3) {
+  width: 60%;
+}
+
+.notepad .pencil {
+  position: absolute;
+  right: -7px;
+  top: -8px;
+  width: 5px;
+  height: 30px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #ffb15c 0%, #ff8a3c 70%, #e86a24 100%);
+  transform: rotate(24deg);
+  box-shadow: 0 2px 4px rgba(30, 10, 60, 0.3);
+}
+
+.doodle .notepad {
+  transform: rotate(8deg) scale(1);
+}
+
+.doodle .arm.right {
+  transform: rotate(-78deg);
+}
+
+.doodle .arm.right .hand {
+  animation: pencilTap 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes pencilTap {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(-3px, -4px);
+  }
+}
+
+/* -------------------------------------------------------------------------
+   State machine
+   ------------------------------------------------------------------------- */
+
+/* Being carried: squish, wide eyes, legs dangling ---------------------- */
+#stage[data-state="drag"] .pet {
+  animation: dangle 1.5s ease-in-out infinite;
+}
+
+#stage[data-state="drag"] .body {
+  animation: none;
+  transform: scale(1.06, 0.94);
+}
+
+#stage[data-state="drag"] .arm.left {
+  transform: rotate(148deg);
+}
+
+#stage[data-state="drag"] .arm.right {
+  transform: rotate(-148deg);
+}
+
+#stage[data-state="drag"] .leg.left {
+  animation: legSwing 0.55s ease-in-out infinite alternate;
+}
+
+#stage[data-state="drag"] .leg.right {
+  animation: legSwing 0.55s ease-in-out infinite alternate-reverse;
+}
+
+#stage[data-state="drag"] .eye {
+  transform: scale(1.12);
+}
+
+#stage[data-state="drag"] .pupil {
+  width: 13px;
+  height: 15px;
+}
+
+@keyframes dangle {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2.5deg);
+  }
+  50% {
+    transform: translateY(-2px) rotate(2.5deg);
+  }
+}
+
+@keyframes legSwing {
+  from {
+    transform: rotate(-12deg);
+  }
+  to {
+    transform: rotate(12deg);
+  }
+}
+
+/* Falling ---------------------------------------------------------------- */
+#stage[data-state="fall"] .pet {
+  animation: fallWobble 0.7s ease-in-out infinite;
+}
+
+#stage[data-state="fall"] .body {
+  animation: none;
+  transform: scale(0.95, 1.06);
+}
+
+#stage[data-state="fall"] .arm.left {
+  transform: rotate(120deg);
+  animation: flail 0.35s ease-in-out infinite alternate;
+}
+
+#stage[data-state="fall"] .arm.right {
+  transform: rotate(-120deg);
+  animation: flail 0.35s ease-in-out infinite alternate-reverse;
+}
+
+#stage[data-state="fall"] .leg.left {
+  transform: rotate(-16deg);
+}
+#stage[data-state="fall"] .leg.right {
+  transform: rotate(16deg);
+}
+
+@keyframes fallWobble {
+  0%,
+  100% {
+    transform: rotate(-3deg) translateY(0);
+  }
+  50% {
+    transform: rotate(3deg) translateY(-2px);
+  }
+}
+
+@keyframes flail {
+  from {
+    transform: rotate(100deg);
+  }
+  to {
+    transform: rotate(140deg);
+  }
+}
+
+/* Walking ---------------------------------------------------------------- */
+#stage[data-state="run"] .pet {
+  animation: walkBob 0.2s ease-in-out infinite;
+}
+
+#stage[data-state="walk"] .pet {
+  animation: walkBob 0.4s ease-in-out infinite;
+}
+
+#stage[data-state="run"] .leg.left,
+#stage[data-state="walk"] .leg.left {
+  animation: stepA 0.4s ease-in-out infinite;
+}
+
+#stage[data-state="run"] .leg.right,
+#stage[data-state="walk"] .leg.right {
+  animation: stepB 0.4s ease-in-out infinite;
+}
+
+@keyframes walkBob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes stepA {
+  0%,
+  100% {
+    transform: rotate(16deg) translateY(-1px);
+  }
+  50% {
+    transform: rotate(-16deg) translateY(1px);
+  }
+}
+
+@keyframes stepB {
+  0%,
+  100% {
+    transform: rotate(-16deg) translateY(1px);
+  }
+  50% {
+    transform: rotate(16deg) translateY(-1px);
+  }
+}
+
+/* Clinging to a wall ----------------------------------------------------- */
+#stage[data-state="cling"] .pet {
+  animation: clingSway 3.2s ease-in-out infinite;
+}
+
+#stage[data-state="cling"] .body {
+  animation: none;
+}
+
+#stage[data-state="cling"] .arm.left {
+  transform: rotate(158deg);
+}
+
+#stage[data-state="cling"] .arm.right {
+  transform: rotate(-60deg);
+}
+
+#stage[data-surface="wall-right"] .arm.right {
+  transform: rotate(-158deg);
+}
+
+#stage[data-surface="wall-right"] .arm.left {
+  transform: rotate(60deg);
+}
+
+#stage[data-state="cling"] .leg.left {
+  transform: rotate(-24deg);
+}
+#stage[data-state="cling"] .leg.right {
+  transform: rotate(14deg);
+}
+
+@keyframes clingSway {
+  0%,
+  100% {
+    transform: rotate(-2deg);
+  }
+  50% {
+    transform: rotate(2deg);
+  }
+}
+
+/* Sitting on a taskbar / title bar: feet dangle -------------------------- */
+#stage[data-state="idle"][data-surface="floor"] .leg.left,
+#stage[data-state="idle"][data-surface="floor"] .leg.right {
+  transform: rotate(0deg);
+}
+
+#stage[data-state="idle"][data-surface="window"] .leg.left {
+  animation: legSwing 0.9s ease-in-out infinite alternate;
+}
+
+#stage[data-state="idle"][data-surface="window"] .leg.right {
+  animation: legSwing 0.9s ease-in-out infinite alternate-reverse;
+}
+
+/* Pestering -------------------------------------------------------------- */
+#stage[data-state="pester"] .pet {
+  animation: leanIn 0.7s ease-in-out infinite;
+}
+
+#stage[data-state="pester"] .arm.right {
+  transform-origin: 50% 7px;
+  animation: knock 0.5s cubic-bezier(0.3, 1.2, 0.5, 1) infinite;
+}
+
+#stage[data-state="pester"] .arm.left {
+  transform: rotate(20deg);
+}
+
+@keyframes leanIn {
+  0%,
+  100% {
+    transform: translateX(0) rotate(0deg);
+  }
+  50% {
+    transform: translateX(-1px) rotate(-2deg);
+  }
+}
+
+@keyframes knock {
+  0%,
+  100% {
+    transform: rotate(-15deg) translateX(0);
+  }
+  35% {
+    transform: rotate(-95deg) translateX(2px);
+  }
+  55% {
+    transform: rotate(-70deg) translateX(0);
+  }
+}
+
+/* Alert ------------------------------------------------------------------ */
+#stage[data-state="alert"] .pet {
+  animation: panicShake 0.32s linear infinite;
+}
+
+#stage[data-state="alert"] .arm.left {
+  transform: rotate(150deg);
+}
+#stage[data-state="alert"] .arm.right {
+  transform: rotate(-150deg);
+}
+
+@keyframes panicShake {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  25% {
+    transform: translate(-3px, -2px) rotate(-3deg);
+  }
+  50% {
+    transform: translate(2px, 1px) rotate(2deg);
+  }
+  75% {
+    transform: translate(-2px, 2px) rotate(-1.5deg);
+  }
+}
+
+/* Sleeping --------------------------------------------------------------- */
+#stage[data-sleepy="true"][data-state="idle"] .pet {
+  animation: sleepBreathe 4.6s ease-in-out infinite;
+}
+
+#stage[data-sleepy="true"][data-state="idle"] .body {
+  animation: none;
+  transform: translateY(1px) scale(1.015, 0.985);
+}
+
+#stage[data-sleepy="true"][data-state="idle"] .leg.left,
+#stage[data-sleepy="true"][data-state="idle"] .leg.right {
+  transform: rotate(0deg) scaleY(0.94);
+}
+
+#stage[data-sleepy="true"][data-state="idle"] .eye {
+  transform: scaleY(0.08);
+}
+
+#stage[data-sleepy="true"][data-state="idle"] .arm.left {
+  transform: rotate(8deg);
+}
+#stage[data-sleepy="true"][data-state="idle"] .arm.right {
+  transform: rotate(-8deg);
+}
+
+@keyframes sleepBreathe {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(1.5px) scale(1.008, 0.994);
+  }
+}
+
+/* One-shot reactions ----------------------------------------------------- */
+.pet.landing {
+  animation: landSquash 0.44s cubic-bezier(0.2, 1.5, 0.4, 1) !important;
+}
+
+@keyframes landSquash {
+  0% {
+    transform: scale(1.08, 0.9) translateY(2px);
+  }
+  45% {
+    transform: scale(0.94, 1.07) translateY(-2px);
+  }
+  100% {
+    transform: scale(1, 1) translateY(0);
+  }
+}
+
+.pet.celebrate {
+  animation: hop 0.46s cubic-bezier(0.3, 1.4, 0.5, 1) 2 !important;
+}
+
+@keyframes hop {
+  0% {
+    transform: translateY(0) scale(1, 1);
+  }
+  30% {
+    transform: translateY(-16px) scale(0.96, 1.06);
+  }
+  55% {
+    transform: translateY(0) scale(1.1, 0.9);
+  }
+  75% {
+    transform: translateY(-5px) scale(1, 1);
+  }
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+}
+
+.pet.stretch {
+  animation: bigStretch 1.5s ease-in-out;
+}
+
+@keyframes bigStretch {
+  0%,
+  100% {
+    transform: scale(1, 1);
+  }
+  35% {
+    transform: scale(0.9, 1.12) translateY(-2px);
+  }
+  60% {
+    transform: scale(1.08, 0.94);
+  }
+}
+
+.pet.yawn .mouth {
+  width: 14px;
+  height: 15px;
+  margin-left: -7px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  animation: yawnMouth 1.6s ease-in-out;
+}
+
+@keyframes yawnMouth {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  40% {
+    transform: scale(1.15, 1.35);
+  }
+}
+
+.pet.wave .arm.right {
+  transform-origin: 50% 7px;
+  animation: waveArm 0.5s ease-in-out infinite alternate;
+}
+
+@keyframes waveArm {
+  from {
+    transform: rotate(-140deg);
+  }
+  to {
+    transform: rotate(-105deg);
+  }
+}
+
+.pet.look-around .pupil {
+  animation: lookAround 1.9s ease-in-out;
+}
+
+/* point at the glass while looking around */
+.pet.look-around .arm.right {
+  transform: rotate(-100deg);
+}
+
+@keyframes lookAround {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(-4.5px, 0);
+  }
+  45% {
+    transform: translate(-4.5px, -2px);
+  }
+  70% {
+    transform: translate(4.5px, 0);
+  }
+}
+
+.pet.hop-small {
+  animation: hopSmall 0.5s ease-out 2;
+}
+
+@keyframes hopSmall {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+  35% {
+    transform: translateY(-11px) scale(0.98, 1.04);
+  }
+  70% {
+    transform: translateY(0) scale(1.05, 0.95);
+  }
+}
+
+/* Small sizes: keep it clean -------------------------------------------- */
+#stage.tiny .badge,
+#stage.tiny .zzz {
+  display: none;
+}
+
+#stage.tiny .eye {
+  top: 29px;
+  width: 23px;
+  height: 24px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001s !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   Pixel pets (cat / dog): a 20x16 canvas scaled up with crisp pixels.
+   ------------------------------------------------------------------------- */
+.sprite {
+  display: none;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 128px;
+  height: 102px;
+  image-rendering: pixelated;
+  pointer-events: auto;
+}
+
+#stage:not([data-skin="blob"]) .sprite {
+  display: block;
+}
+
+#stage:not([data-skin="blob"]) .tilt,
+#stage:not([data-skin="blob"]) .notepad {
+  display: none;
+}
+
+/* hanging on a wall: head up, paws on the wall */
+#stage:not([data-skin="blob"])[data-state="cling"] .sprite {
+  transform: scaleX(-1) rotate(-90deg);
+}

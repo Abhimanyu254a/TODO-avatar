@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:;"
+    />
+    <title>TodoAvatarPanel</title>
+    <link rel="stylesheet" href="panel.css" />
+  </head>
+  <body>
+    <div class="app" id="app">
+      <main class="card" id="card">
+        <header class="head" id="dragBar">
+          <div class="brand">
+            <span class="logo"><i class="logo-eye l"></i><i class="logo-eye r"></i></span>
+            <div class="brand-text">
+              <h1>TODO SPIRIT</h1>
+              <p id="summary">Nothing on the list</p>
+            </div>
+          </div>
+          <div class="head-buttons">
+            <button class="icon-btn" id="settingsBtn" title="Settings" aria-label="Settings">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M12 8.4a3.6 3.6 0 1 0 0 7.2 3.6 3.6 0 0 0 0-7.2Zm9 4.6c0 .5 0 1-.1 1.5l2 1.5-2 3.4-2.3-.9a7.7 7.7 0 0 1-2.6 1.5l-.4 2.5h-4l-.4-2.5a7.7 7.7 0 0 1-2.6-1.5l-2.3.9-2-3.4 2-1.5a9 9 0 0 1 0-3l-2-1.5 2-3.4 2.3.9A7.7 7.7 0 0 1 10.2 3l.4-2.5h4l.4 2.5c.9.3 1.8.8 2.6 1.5l2.3-.9 2 3.4-2 1.5c.1.5.1 1 .1 1.5Z"
+                />
+              </svg>
+            </button>
+            <button class="icon-btn" id="closeBtn" title="Close (Esc)" aria-label="Close">
+              <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+                <path fill="currentColor" d="M18.3 5.7 12 12l6.3 6.3-1.4 1.4L10.6 13.4 4.3 19.7 2.9 18.3 9.2 12 2.9 5.7 4.3 4.3l6.3 6.3 6.3-6.3z" />
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <form class="add" id="addForm" autocomplete="off">
+          <input
+            id="taskInput"
+            class="add-input"
+            type="text"
+            maxlength="140"
+            placeholder="What needs doing?"
+            aria-label="New task"
+          />
+          <button class="add-btn" type="submit" title="Add task" aria-label="Add task">
+            <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+              <path fill="currentColor" d="M11 5h2v6h6v2h-6v6h-2v-6H5v-2h6z" />
+            </svg>
+          </button>
+        </form>
+
+        <div class="meta">
+          <div class="prios" id="prios" role="group" aria-label="Priority">
+            <button type="button" class="prio" data-priority="low"><i></i>Low</button>
+            <button type="button" class="prio on" data-priority="med"><i></i>Medium</button>
+            <button type="button" class="prio" data-priority="high"><i></i>High</button>
+          </div>
+          <button type="button" class="chip" id="dueToggle">Time</button>
+        </div>
+
+        <div class="due-row" id="dueRow">
+          <input type="datetime-local" id="dueInput" aria-label="Deadline" />
+          <button type="button" class="ghost-btn" id="dueClear">Clear</button>
+        </div>
+
+        <div class="list-wrap" id="listWrap">
+          <ul class="list" id="list"></ul>
+          <div class="empty" id="empty">
+            <div class="empty-orb"></div>
+            <p class="empty-title">All clear.</p>
+            <p class="empty-sub">Give me something to nag you about.</p>
+          </div>
+        </div>
+
+        <div class="list-wrap history-wrap" id="historyWrap">
+          <div class="history-head">
+            <span>Recently snapped</span>
+            <span class="history-count" id="historyCount">0</span>
+          </div>
+          <ul class="list" id="historyList"></ul>
+          <div class="empty" id="historyEmpty">
+            <div class="empty-orb ash"></div>
+            <p class="empty-title">No dust yet.</p>
+            <p class="empty-sub">Tick something off and watch it crumble.</p>
+          </div>
+        </div>
+
+        <footer class="foot">
+          <span id="snapped">0 snapped today</span>
+          <div class="foot-btns">
+            <button type="button" class="ghost-btn" id="historyBtn">Dust</button>
+            <button type="button" class="ghost-btn" id="remindBtn">Remind me</button>
+          </div>
+        </footer>
+
+        <div class="toast" id="toast"></div>
+      </main>
+
+      <section class="sheet" id="settings" aria-hidden="true">
+        <header class="sheet-head">
+          <button class="icon-btn" id="settingsBack" title="Back" aria-label="Back">
+            <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+              <path fill="currentColor" d="M15.4 7.4 14 6l-6 6 6 6 1.4-1.4L10.8 12z" />
+            </svg>
+          </button>
+          <h2>Settings</h2>
+        </header>
+
+        <div class="sheet-body">
+          <div class="setting">
+            <div class="setting-label"><span>Character</span></div>
+            <div class="prios" id="skins" role="group" aria-label="Character">
+              <button type="button" class="prio" data-skin="blob">Blob</button>
+              <button type="button" class="prio" data-skin="cat">Cat</button>
+              <button type="button" class="prio" data-skin="dog">Dog</button>
+            </div>
+          </div>
+
+          <div class="setting">
+            <div class="setting-label">
+              <span>Avatar size</span>
+              <b id="sizeValue">96 px</b>
+            </div>
+            <input type="range" id="sizeSlider" min="32" max="128" step="4" value="96" />
+            <div class="range-ticks"><span>32</span><span>64</span><span>96</span><span>128</span></div>
+          </div>
+
+          <label class="setting row">
+            <div>
+              <span>Sound effects</span>
+              <small>Chimes, thuds and the snap</small>
+            </div>
+            <input type="checkbox" class="switch" id="soundToggle" />
+          </label>
+
+          <label class="setting row">
+            <div>
+              <span>Reminders</span>
+              <small>Pestering and deadline alerts</small>
+            </div>
+            <input type="checkbox" class="switch" id="remindersToggle" />
+          </label>
+
+          <label class="setting row">
+            <div>
+              <span>Always on top</span>
+              <small>Keep the spirit above other windows</small>
+            </div>
+            <input type="checkbox" class="switch" id="topToggle" />
+          </label>
+
+          <label class="setting row">
+            <div>
+              <span>Start with Windows</span>
+              <small>Launch quietly at login</small>
+            </div>
+            <input type="checkbox" class="switch" id="loginToggle" />
+          </label>
+
+          <div class="setting">
+            <div class="setting-label"><span>How often it nags you</span><b>25–45 min</b></div>
+            <p class="hint">
+              Deadline reminders always fire on time. The passive nudges use the range above.
+            </p>
+          </div>
+
+          <button class="danger-btn" id="quitBtn">Quit Todo Spirit</button>
+        </div>
+      </section>
+
+      <canvas id="dust"></canvas>
+    </div>
+
+    <script src="../../node_modules/html2canvas/dist/html2canvas.min.js"></script>
+    <script src="dust.js"></script>
+    <script src="panel.js"></script>
+  </body>
+</html>
